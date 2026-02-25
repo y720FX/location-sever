@@ -33,6 +33,8 @@ db.exec(`
     speed       REAL,
     altitude    REAL,
     is_sos      INTEGER DEFAULT 0,
+    battery     REAL,
+    network     TEXT,
     timestamp   TEXT    DEFAULT (datetime('now')),
     created_at  TEXT    DEFAULT (datetime('now'))
   );
@@ -43,7 +45,7 @@ db.exec(`
 
 // ─── 接收孩子端上传的位置 ───
 app.post("/api/location", (req, res) => {
-  const { device_id, lat, lng, accuracy, speed, altitude, timestamp, is_sos } =
+  const { device_id, lat, lng, accuracy, speed, altitude, timestamp, is_sos, battery, network } =
     req.body
 
   if (!device_id || !lat || !lng) {
@@ -51,8 +53,8 @@ app.post("/api/location", (req, res) => {
   }
 
   const stmt = db.prepare(`
-    INSERT INTO locations (device_id, lat, lng, accuracy, speed, altitude, timestamp, is_sos)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO locations (device_id, lat, lng, accuracy, speed, altitude, timestamp, is_sos, battery, network)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   stmt.run(
@@ -63,7 +65,9 @@ app.post("/api/location", (req, res) => {
     speed ?? 0,
     altitude ?? 0,
     timestamp ?? new Date().toISOString(),
-    is_sos ? 1 : 0
+    is_sos ? 1 : 0,
+    battery ?? null,
+    network ?? null
   )
 
   console.log(
